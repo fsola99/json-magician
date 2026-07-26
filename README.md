@@ -47,8 +47,3 @@ entender las dos.
 
 Si aparece una tactica que no esta en el diccionario, el script la marca como
 `Unknown` y avisa al terminar cual fue, para poder agregarla.
-
-## Archivos
-
-- `json-magicianv2.py` — la version que conviene usar.
-- `json-magician.py` — la primera version, mas simple (solo tactica, ID y tecnica).
