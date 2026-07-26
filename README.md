@@ -1,18 +1,20 @@
 # json-magician
 
-El mago de las TTPs: arma un CSV con todas las tacticas, tecnicas y subtecnicas de
-**varias versiones de MITRE ATT&CK a la vez**, para poder compararlas entre si.
+Builds a single CSV of tactics, techniques and sub-techniques across **several
+MITRE ATT&CK releases at once**, so you can diff them.
 
-<img src="https://i.ibb.co/0DhxKTQ/output.png"/>
+ATT&CK is not static: techniques get added, revoked, split into sub-techniques, and
+tactics occasionally get renamed. If your detection coverage is mapped to technique
+IDs, every ATT&CK release is a question — *what moved, and does our mapping still
+hold?* This answers it as a spreadsheet you can pivot.
 
-## Uso
+## Usage
 
 ```bash
-python json-magicianv2.py <carpeta_madre> [salida.csv]
+python json-magicianv2.py <parent_folder> [output.csv]
 ```
 
-La carpeta madre tiene que tener una subcarpeta por version, con el nombre terminado
-en la version:
+The parent folder holds one subfolder per release, each named with its version:
 
 ```
 MITRE/
@@ -20,30 +22,35 @@ MITRE/
   cti-ATT-CK-v14.1/enterprise-attack/attack-pattern/*.json
 ```
 
-Cada release se baja de [mitre/cti](https://github.com/mitre/cti): elegis el tag de
-la version que quieras y la descargas como ZIP.
+Each release comes from [mitre/cti](https://github.com/mitre/cti) — pick the tag you
+want and download it as a ZIP. Output defaults to `ttps.csv`.
 
-Si no pasas el segundo argumento, escribe en `ttps.csv`.
+## Output
 
-## Salida
-
-Una fila por cada par tecnica/tactica, ya que una misma tecnica puede pertenecer a
-varias tacticas:
+One row per technique/tactic pair, since a technique can belong to several tactics:
 
 | Version | Tactica | TacticaID | Tecnica | TecnicaID | Subtecnica | SubtecnicaID |
 |---|---|---|---|---|---|---|
 | 14.1 | persistence | TA0003 | | T1053 | Scheduled Task | T1053.005 |
 | 14.1 | stealth | TA0005 | Indicator Removal from Tools | T1066 | | |
 
-Las tecnicas revocadas no tienen tacticas y salen con `N/A`.
+Revoked techniques carry no tactics and come through as `N/A` — which is exactly what
+you want to see when diffing releases.
 
-## Sobre los nombres de las tacticas
+## On tactic names
 
-El diccionario de tacticas guarda los nombres viejos **y** los nuevos a proposito.
-MITRE renombro `defense-evasion` a `stealth` (las dos son TA0005) y sumo
-`defense-impairment` (TA0112), asi que una version vieja y una nueva le dicen
-distinto a la misma tactica. Como el script justamente compara versiones, necesita
-entender las dos.
+The tactic lookup deliberately holds both old and new names. MITRE renamed
+`defense-evasion` to `stealth` (both TA0005) and later added `defense-impairment`
+(TA0112), so an old release and a new one call the same tactic different things. A
+tool whose entire job is comparing releases has to understand both.
 
-Si aparece una tactica que no esta en el diccionario, el script la marca como
-`Unknown` y avisa al terminar cual fue, para poder agregarla.
+Anything not in the lookup is marked `Unknown` and reported at the end of the run, so
+a future rename surfaces immediately instead of silently corrupting a column.
+
+## Related
+
+Part of a small set of ATT&CK utilities:
+
+- [ttps-magician](https://github.com/fsola99/ttps-magician) — exports the full technique catalogue
+- [groups-magician](https://github.com/fsola99/groups-magician) — maps threat groups to their techniques
+- [ioc-hunter](https://github.com/fsola99/ioc-hunter) — IoC triage console with a browsable ATT&CK matrix
